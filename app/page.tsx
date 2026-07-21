@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-slate-950 px-6 py-24 text-white">
@@ -14,15 +16,18 @@ export default function Home() {
           project structure for future feature development.
         </p>
         <div className="mt-8 flex flex-wrap gap-3 text-sm text-slate-200">
-          <span className="rounded-full border border-white/10 bg-white/10 px-4 py-2">
-            Next.js App Router
-          </span>
-          <span className="rounded-full border border-white/10 bg-white/10 px-4 py-2">
-            TypeScript + Tailwind
-          </span>
-          <span className="rounded-full border border-white/10 bg-white/10 px-4 py-2">
-            Supabase-ready foundation
-          </span>
+          <Link
+            href="/projects"
+            className="rounded-full border border-white/10 bg-white/10 px-4 py-2 transition hover:bg-white/20"
+          >
+            View Projects
+          </Link>
+          <Link
+            href="/projects/new"
+            className="rounded-full border border-cyan-400/40 bg-cyan-500/10 px-4 py-2 text-cyan-200 transition hover:bg-cyan-500/20"
+          >
+            Create Project
+          </Link>
         </div>
       </div>
     </main>
