@@ -5,7 +5,15 @@ import { TopBar } from "@/components/delta/TopBar";
 import { AppSidebar } from "./AppSidebar";
 import { ProjectIdentityProvider } from "./ProjectIdentityContext";
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  showSidebar = true,
+  showAccountNavigation = true,
+}: {
+  children: React.ReactNode;
+  showSidebar?: boolean;
+  showAccountNavigation?: boolean;
+}) {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   return (
@@ -14,7 +22,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         data-theme={theme}
         className="flex h-dvh min-h-[640px] overflow-hidden bg-surface-primary text-text-primary"
       >
-        <AppSidebar />
+        {showSidebar && <AppSidebar showAccountNavigation={showAccountNavigation} />}
 
         <div className="flex min-w-0 flex-1 flex-col">
           <TopBar

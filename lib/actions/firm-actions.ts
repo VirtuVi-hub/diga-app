@@ -43,8 +43,9 @@ export async function createFirm(input: CreateFirmInput) {
 
   const leadArchitectRoleId = await RolesRepository.getRoleIdByName("Lead Architect");
   if (!leadArchitectRoleId) throw new Error('The "Lead Architect" role has not been seeded yet.');
+  if (!person.auth_user_id) throw new Error("Your account is missing its authentication identity.");
 
-  const firm = await FirmService.createFirm(input, person.id, leadArchitectRoleId, displayName(person));
+  const firm = await FirmService.createFirm(input, person.id, leadArchitectRoleId, displayName(person), person.auth_user_id);
   revalidatePath("/firm");
   return firm;
 }
@@ -54,10 +55,7 @@ export async function joinFirmByCode(code: string, roleId: string) {
   const person = await getCurrentPerson();
   if (!person) throw new Error("You must be signed in to join a Firm.");
 
-  const firm = await FirmService.getFirmByInviteCode(code);
-  if (!firm) throw new Error("That invite code was not recognized.");
-
-  await FirmService.joinFirm(firm.id, person.id, roleId);
+  const firm = await FirmService.joinFirmByInviteCode(code, roleId);
   revalidatePath("/firm");
   return firm;
 }

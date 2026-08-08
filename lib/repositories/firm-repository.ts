@@ -89,13 +89,13 @@ export class FirmRepository {
     return data;
   }
 
-  static async createFirm(input: CreateFirmInput, ownerPersonId: string, ownerRoleId: string): Promise<Firm> {
+  static async createFirm(input: CreateFirmInput, ownerPersonId: string, ownerRoleId: string, ownerAuthUserId: string): Promise<Firm> {
     const supabase = await createServerSupabaseClient();
     const inviteCode = randomInviteCode();
 
     const { data: firm, error } = await supabase
       .from("firms")
-      .insert({ ...input, invite_code: inviteCode })
+      .insert({ ...input, invite_code: inviteCode, created_by: ownerAuthUserId })
       .select("*")
       .single();
 
@@ -115,6 +115,18 @@ export class FirmRepository {
     const { data, error } = await supabase.from("firms").select("*").eq("invite_code", code.trim().toUpperCase()).maybeSingle();
     if (error) throw new Error(error.message);
     return data;
+  }
+
+  static async joinByInviteCode(code: string, roleId: string): Promise<Firm> {
+    const supabase = await createServerSupabaseClient();
+    const { data, error } = await supabase.rpc("join_firm_by_invite_code", {
+      p_invite_code: code.trim().toUpperCase(),
+      p_role_id: roleId,
+    });
+
+    const firm = Array.isArray(data) ? data[0] : data;
+    if (error || !firm) throw new Error(error?.message ?? "Failed to join Firm.");
+    return firm as Firm;
   }
 
   static async joinFirm(firmId: string, personId: string, roleId: string): Promise<void> {

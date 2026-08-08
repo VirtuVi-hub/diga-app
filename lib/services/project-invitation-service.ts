@@ -2,7 +2,6 @@ import { EVENT_TYPES } from "@/lib/events/event-types";
 import { publishSafely } from "@/lib/events/event-publisher";
 import { ProjectInvitationRepository } from "@/lib/repositories/project-invitation-repository";
 import { DocumentRepository } from "@/lib/repositories/document-repository";
-import { FirmRepository } from "@/lib/repositories/firm-repository";
 import { ProjectGovernanceRepository } from "@/lib/repositories/project-governance-repository";
 import { createServerSupabaseClient } from "@/supabase/server";
 import type { ProjectInvitation, ProjectInvitationLanding } from "@/lib/types/project-invitation";
@@ -41,46 +40,22 @@ export class ProjectInvitationService {
    * regardless of role.
    */
   static async acceptByCode(code: string, personId: string, personName: string): Promise<{ invitation: ProjectInvitation; membership: ProjectTeamMember }> {
-    const invitation = await ProjectInvitationRepository.getByCode(code);
-    if (!invitation) throw new Error("That invitation link was not recognized.");
-    if (invitation.status !== "pending") throw new Error("That invitation has already been used or is no longer valid.");
-
+    // The RPC validates and consumes the capability code before creating the
+    // membership. This preserves RLS for ordinary project-team writes.
+    const acceptedInvitation = await ProjectInvitationRepository.acceptByCode(code);
+    const invitation = await ProjectInvitationRepository.getByCode(code) ?? acceptedInvitation;
     const supabase = await createServerSupabaseClient();
 
     const { data: memberRow, error: memberError } = await supabase
       .from("project_team")
-      .upsert(
-        { project_id: invitation.project_id, person_id: personId, role_id: invitation.role_id, active: true, status: "active", invited_by: invitation.invited_by },
-        { onConflict: "project_id,person_id,role_id" },
-      )
       .select("id, person_id, role_id, people!person_id(first_name, last_name, email), roles(name)")
+      .eq("project_id", invitation.project_id)
+      .eq("person_id", personId)
+      .eq("role_id", invitation.role_id)
+      .eq("active", true)
       .single();
 
     if (memberError || !memberRow) throw new Error(memberError?.message ?? "Failed to add project membership.");
-
-    const accepted = await ProjectInvitationRepository.markAccepted(invitation.id);
-
-    // Sprint 5.9, Module 3: Branch B of the One Invitation Engine —
-    // "automatically join the Firm (if appropriate) and the Project."
-    // Main Client invitees never join the Firm (clients aren't Firm
-    // members); everyone else does, if they aren't already a member of
-    // ANY Firm (the person's own `getFirmForPerson()` "earliest
-    // membership" simplification already prevents a second Firm here).
-    if (!invitation.is_main_client_invite) {
-      const supabase2 = await createServerSupabaseClient();
-      const { data: project } = await supabase2.from("projects").select("firm_id").eq("id", invitation.project_id).maybeSingle<{ firm_id: string | null }>();
-
-      if (project?.firm_id) {
-        const existingMembership = await FirmRepository.getFirmForPerson(personId);
-        if (!existingMembership) {
-          const generalRoles = await FirmRepository.getGeneralRoles();
-          const consultantRoleId = generalRoles.find((role) => role.name === "Consultant")?.id;
-          if (consultantRoleId) {
-            await FirmRepository.joinFirm(project.firm_id, personId, consultantRoleId);
-          }
-        }
-      }
-    }
 
     if (invitation.is_main_client_invite) {
       const { error: projectError } = await supabase
@@ -115,7 +90,7 @@ export class ProjectInvitationService {
     const row = memberRow as unknown as { id: string; person_id: string; role_id: string; people: { first_name: string; last_name: string; email: string | null } | null; roles: { name: string } | null };
 
     return {
-      invitation: accepted,
+      invitation,
       membership: {
         id: row.id,
         personId: row.person_id,

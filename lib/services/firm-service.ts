@@ -28,8 +28,8 @@ export class FirmService {
    * verification), so the display name is threaded through instead,
    * matching the existing convention rather than changing it.
    */
-  static async createFirm(input: CreateFirmInput, ownerPersonId: string, ownerRoleId: string, ownerName: string): Promise<Firm> {
-    const firm = await FirmRepository.createFirm(input, ownerPersonId, ownerRoleId);
+  static async createFirm(input: CreateFirmInput, ownerPersonId: string, ownerRoleId: string, ownerName: string, ownerAuthUserId: string): Promise<Firm> {
+    const firm = await FirmRepository.createFirm(input, ownerPersonId, ownerRoleId, ownerAuthUserId);
 
     await publishSafely({
       eventType: EVENT_TYPES.FIRM_CREATED,
@@ -46,6 +46,10 @@ export class FirmService {
 
   static async joinFirm(firmId: string, personId: string, roleId: string): Promise<void> {
     return FirmRepository.joinFirm(firmId, personId, roleId);
+  }
+
+  static async joinFirmByInviteCode(code: string, roleId: string): Promise<Firm> {
+    return FirmRepository.joinByInviteCode(code, roleId);
   }
 
   static async listMembers(firmId: string) {

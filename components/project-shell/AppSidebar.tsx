@@ -15,7 +15,7 @@ function projectIdFromPathname(pathname: string) {
   return match[1];
 }
 
-export function AppSidebar() {
+export function AppSidebar({ showAccountNavigation = true }: { showAccountNavigation?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const { identity } = useProjectIdentity();
@@ -63,10 +63,12 @@ export function AppSidebar() {
         ]
     : [];
 
-  const accountItems: SidebarNavItem[] = [
-    { label: "Firm", icon: Building },
-    { label: "All Projects", icon: FolderKanban },
-  ];
+  const accountItems: SidebarNavItem[] = showAccountNavigation
+    ? [
+        { label: "Firm", icon: Building },
+        { label: "All Projects", icon: FolderKanban },
+      ]
+    : [];
 
   const items: SidebarNavItem[] = insideProject ? [...projectItems, ...accountItems] : accountItems;
 

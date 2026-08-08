@@ -30,6 +30,18 @@ export async function uploadDocumentFile(formData: FormData) {
     throw new Error("Missing project.");
   }
 
+  // The Storage write uses the server-only service client, so authorize the
+  // project with the request-scoped RLS client before any object is written.
+  const { data: project, error: projectError } = await authClient
+    .from("projects")
+    .select("id")
+    .eq("id", projectId)
+    .maybeSingle();
+
+  if (projectError || !project) {
+    throw new Error("You do not have access to upload documents for this project.");
+  }
+
   if (!documentId && !documentName) {
     throw new Error("Document name is required.");
   }

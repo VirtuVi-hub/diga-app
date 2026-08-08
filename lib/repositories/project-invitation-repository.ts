@@ -120,6 +120,20 @@ export class ProjectInvitationRepository {
     return data;
   }
 
+  static async acceptByCode(code: string): Promise<ProjectInvitation> {
+    const supabase = await createServerSupabaseClient();
+    const { data, error } = await supabase.rpc("accept_project_invitation", {
+      p_invite_code: code.trim().toUpperCase(),
+    });
+
+    const invitation = Array.isArray(data) ? data[0] : data;
+    if (error || !invitation) {
+      throw new Error(error?.message ?? "Failed to accept invitation.");
+    }
+
+    return invitation as ProjectInvitation;
+  }
+
   static async revoke(id: string): Promise<void> {
     const supabase = await createServerSupabaseClient();
     const { error } = await supabase.from("project_invitations").update({ status: "revoked" }).eq("id", id);
