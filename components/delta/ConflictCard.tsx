@@ -1,0 +1,2 @@
+import { AlertTriangle } from "lucide-react";
+export function ConflictCard({ conflict }: { conflict: string }) { return <div className="flex items-center gap-2 rounded-lg border border-error/30 bg-error/10 p-3"><AlertTriangle size={14} className="shrink-0 text-error" /><p className="text-[11px] leading-5 text-text-secondary">Potential conflict: <span className="font-medium text-text-primary">{conflict}</span></p></div>; }

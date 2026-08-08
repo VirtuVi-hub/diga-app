@@ -1,0 +1,2 @@
+import { CopyPlus } from "lucide-react";
+export function DuplicateCandidateCard({ candidate }: { candidate: string }) { return <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 p-3"><CopyPlus size={14} className="shrink-0 text-warning" /><p className="text-[11px] leading-5 text-text-secondary">Possible duplicate: <span className="font-medium text-text-primary">{candidate}</span></p></div>; }

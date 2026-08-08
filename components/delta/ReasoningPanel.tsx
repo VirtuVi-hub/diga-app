@@ -1,0 +1,3 @@
+import { BrainCircuit } from "lucide-react";
+
+export function ReasoningPanel({ reasons }: { reasons: string[] }) { return <section className="rounded-lg border border-border-subtle bg-surface-primary p-4"><p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.12em] text-text-tertiary"><BrainCircuit size={14} className="text-accent-primary" />Why Delta found this</p><ul className="mt-3 space-y-2">{reasons.map((reason) => <li key={reason} className="flex gap-2 text-[12px] leading-5 text-text-secondary"><span className="mt-2 size-1 shrink-0 rounded-full bg-accent-primary" />{reason}</li>)}</ul></section>; }

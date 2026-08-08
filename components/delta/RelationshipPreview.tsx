@@ -1,0 +1,3 @@
+import { Network } from "lucide-react";
+
+export function RelationshipPreview({ objects }: { objects: string[] }) { return <section><p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.12em] text-text-tertiary"><Network size={14} />Linked objects</p><div className="mt-3 flex flex-wrap gap-2">{objects.map((object) => <button type="button" key={object} className="rounded-md border border-border-subtle bg-surface-primary px-2.5 py-1.5 text-[11px] text-text-secondary transition hover:border-accent-primary/40 hover:text-text-primary">{object}</button>)}</div></section>; }

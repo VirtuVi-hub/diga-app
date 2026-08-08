@@ -1,26 +1,149 @@
 @import "tailwindcss";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/manrope/500.css";
+@import "@fontsource/manrope/600.css";
+@import "@fontsource/manrope/700.css";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --surface-primary: #1a1917;
+  --surface-secondary: #211f1c;
+  --surface-tertiary: #2b2824;
+  --surface-raised: #35312c;
+  --text-primary: #f3f0eb;
+  --text-secondary: #bbb4aa;
+  --text-tertiary: #837c72;
+  --border-subtle: #39352f;
+  --border-strong: #504a42;
+  --accent-primary: #bd8450;
+  --accent-hover: #d39a64;
+  --accent-muted: #4a3627;
+  --success: #6f9b7d;
+  --warning: #c2a65b;
+  --error: #b76b62;
+  --info: #7c91a7;
+  --discussion: #9682a8;
+  --meeting: #858f9c;
+  --drawing: #507d7c;
+  --agreement: #7d8060;
+  --space: #63806e;
+  --decision: #8090a1;
+  --discussion-type-req: #cf7c3f;
+  --discussion-type-qry: #6f8fb3;
+  --discussion-type-dsn: #9d7cc4;
+  --discussion-type-dec: #6ea86f;
+  --discussion-type-rev: #c9a23c;
+  --discussion-type-rfi: #c1584f;
+  --discussion-type-act: #4f9490;
+  --discussion-type-clt: #8a6c4f;
+  --discussion-type-agr: #7d8060;
+  --shadow-card: 0 10px 24px rgb(0 0 0 / 0.1);
+}
+
+[data-theme="light"] {
+  --surface-primary: #f0ece4;
+  --surface-secondary: #e6e0d6;
+  --surface-tertiary: #faf8f3;
+  --surface-raised: #ffffff;
+  --text-primary: #25221d;
+  --text-secondary: #6e685f;
+  --text-tertiary: #928a7f;
+  --border-subtle: #d5cec3;
+  --border-strong: #bbb2a5;
+  --accent-primary: #a76d3b;
+  --accent-hover: #8d572b;
+  --accent-muted: #ead8c4;
+  --success: #63836c;
+  --warning: #a8842b;
+  --error: #a85d54;
+  --info: #637c92;
+  --discussion: #7d698f;
+  --meeting: #697482;
+  --drawing: #42716f;
+  --agreement: #6c704d;
+  --space: #55745f;
+  --decision: #697e92;
+  --discussion-type-req: #a8622f;
+  --discussion-type-qry: #5a7699;
+  --discussion-type-dsn: #7f5fa3;
+  --discussion-type-dec: #57895a;
+  --discussion-type-rev: #a8842b;
+  --discussion-type-rfi: #a04840;
+  --discussion-type-act: #3f7d79;
+  --discussion-type-clt: #705540;
+  --discussion-type-agr: #6c704d;
+  --shadow-card: 0 8px 20px rgb(53 45 34 / 0.07);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-surface-primary: var(--surface-primary);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-tertiary: var(--surface-tertiary);
+  --color-surface-raised: var(--surface-raised);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-muted: var(--accent-muted);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+  --color-discussion: var(--discussion);
+  --color-meeting: var(--meeting);
+  --color-drawing: var(--drawing);
+  --color-agreement: var(--agreement);
+  --color-space: var(--space);
+  --color-decision: var(--decision);
+  --color-discussion-type-req: var(--discussion-type-req);
+  --color-discussion-type-qry: var(--discussion-type-qry);
+  --color-discussion-type-dsn: var(--discussion-type-dsn);
+  --color-discussion-type-dec: var(--discussion-type-dec);
+  --color-discussion-type-rev: var(--discussion-type-rev);
+  --color-discussion-type-rfi: var(--discussion-type-rfi);
+  --color-discussion-type-act: var(--discussion-type-act);
+  --color-discussion-type-clt: var(--discussion-type-clt);
+  --color-discussion-type-agr: var(--discussion-type-agr);
+  --font-ui: "Inter", Arial, sans-serif;
+  --font-display: "Manrope", Arial, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-family: "Inter", Arial, sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--accent-primary);
 }

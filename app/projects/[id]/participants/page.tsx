@@ -1,50 +1,75 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getFirmContext, listFirmMembers } from "@/lib/actions/firm-actions";
+import { getProjectMainClient, listProjectMembership } from "@/lib/actions/project-actions";
+import { listProjectInvitations } from "@/lib/actions/project-invitation-actions";
+import { listProjectDelegations } from "@/lib/actions/delegation-actions";
+import { FirmRepository } from "@/lib/repositories/firm-repository";
+import { RolesRepository } from "@/lib/repositories/roles-repository";
+import { toDisplayRoleName } from "@/lib/roles/display-role-name";
+import { ParticipantsClient } from "@/components/participants/ParticipantsClient";
 import { createServerSupabaseClient } from "@/supabase/server";
+import { WORKSPACE_FEED_MAX_WIDTH_CLASS, WORKSPACE_FEED_PADDING_CLASS } from "@/lib/workspace-layout";
 
 export const dynamic = "force-dynamic";
 
-type Project = {
-  id: string;
-  name: string;
-};
-
-async function getProject(id: string) {
+async function getProjectName(id: string) {
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase.from("projects").select("id, name").eq("id", id).single();
-
-  if (error || !data) {
-    return null;
-  }
-
-  return data as Project;
+  const { data } = await supabase.from("projects").select("id, name").eq("id", id).maybeSingle();
+  return data;
 }
 
-export default async function ParticipantsPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+/**
+ * Sprint 5.7, Modules 5-9: the real Project Membership page — was
+ * "Coming Soon." Separates Firm Membership from Project Membership
+ * (Module 5), supports project invitations (Module 6), extensible
+ * participant categories (Module 7), Authority & Delegation (Module 8),
+ * and the Main Client (Module 9).
+ */
+export default async function ParticipantsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const project = await getProject(id);
+  const project = await getProjectName(id);
+  if (!project) notFound();
 
-  if (!project) {
-    notFound();
-  }
+  const [membership, invitations, delegations, projectRoles, mainClient, firmContext] = await Promise.all([
+    listProjectMembership(id),
+    listProjectInvitations(id),
+    listProjectDelegations(id),
+    FirmRepository.getProjectRoles(),
+    getProjectMainClient(id),
+    getFirmContext(),
+  ]);
+
+  const firmMembers = firmContext.firm ? await listFirmMembers(firmContext.firm.id) : [];
+  const mainClientRoleId = await RolesRepository.getRoleIdByName("Main Client");
+
+  const authorityHolders = [
+    ...(mainClient.personId && mainClientRoleId ? [{ personId: mainClient.personId, name: mainClient.personName ?? "Main Client", roleId: mainClientRoleId, roleName: "Main Client" }] : []),
+    // Sprint 5.9, Module 6: also match "Owner" defensively (pre-migration
+    // data in an environment where the data fix hasn't run yet) — every
+    // project creator now genuinely holds "Lead Architect" going forward.
+    ...membership
+      .filter((member) => (member.role === "Lead Architect" || member.role === "Owner") && member.status === "active")
+      .map((member) => ({ personId: member.personId, name: member.name, roleId: member.roleId, roleName: toDisplayRoleName(member.role) })),
+  ];
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-16 text-white">
-      <div className="mx-auto max-w-3xl rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl shadow-black/20 backdrop-blur">
-        <p className="text-sm uppercase tracking-[0.35em] text-cyan-300">{project.name}</p>
-        <h1 className="mt-3 text-3xl font-semibold">Participants</h1>
-        <p className="mt-4 text-lg text-slate-300">Coming Soon</p>
-        <Link
-          href={`/projects/${project.id}`}
-          className="mt-6 inline-flex rounded-full border border-white/10 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/10"
-        >
-          Back to Dashboard
-        </Link>
+    <div className={`mx-auto w-full ${WORKSPACE_FEED_MAX_WIDTH_CLASS} ${WORKSPACE_FEED_PADDING_CLASS}`}>
+      <h2 className="font-display text-2xl font-semibold text-text-primary">Project Team</h2>
+      <p className="mt-1 text-text-secondary">A person may belong to many projects. Project invitations are separate from Firm invitations.</p>
+
+      <div className="mt-8">
+        <ParticipantsClient
+          projectId={id}
+          projectName={project.name}
+          membership={membership}
+          invitations={invitations}
+          delegations={delegations}
+          projectRoles={projectRoles}
+          mainClient={mainClient}
+          authorityHolders={authorityHolders}
+          firmMembers={firmMembers}
+        />
       </div>
-    </main>
+    </div>
   );
 }

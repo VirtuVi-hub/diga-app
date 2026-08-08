@@ -1,0 +1,2 @@
+import { GitMerge } from "lucide-react";
+export function MergeSuggestion({ candidate }: { candidate: string }) { return <button type="button" className="inline-flex items-center gap-1.5 rounded-md border border-border-strong px-2.5 py-2 text-[11px] font-medium text-text-secondary transition hover:border-accent-primary hover:text-accent-primary"><GitMerge size={13} />Merge with {candidate}</button>; }

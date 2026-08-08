@@ -1,0 +1,4 @@
+import { FileText } from "lucide-react";
+import type { ReviewObject } from "@/types/review";
+
+export function EvidenceTimeline({ evidence }: { evidence: ReviewObject["evidence"] }) { return <section><p className="text-[11px] font-bold uppercase tracking-[0.12em] text-text-tertiary">Evidence</p><div className="mt-3 space-y-3 border-l border-border-subtle pl-4">{evidence.map((item) => <button type="button" key={`${item.source}-${item.reference}`} className="relative flex w-full items-center gap-2 text-left before:absolute before:-left-[19px] before:size-2 before:rounded-full before:bg-accent-primary"><FileText size={14} className="text-accent-primary" /><span className="text-[12px] text-text-secondary">{item.source}</span><span className="ml-auto text-[11px] text-text-tertiary">{item.reference}</span></button>)}</div></section>; }
