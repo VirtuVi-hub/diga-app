@@ -8,17 +8,19 @@
  * server import), so it can be called directly from a "use client"
  * component.
  *
- * Sprint 5.8, Module 1: the base URL is `NEXT_PUBLIC_APP_URL` (inlined at
- * build time into the client bundle, same as every other `NEXT_PUBLIC_*`
- * variable in this codebase) — never `window.location.origin`. A link
- * generated from `window.location.origin` happens to look right for
- * whichever origin the Lead Architect is currently on, but isn't the
- * single source of truth Module 1 asks for (a reverse proxy or tunnel
- * hostname can differ from the one that should actually be shared) and
- * silently falls apart for any future non-browser caller. Falls back to
- * `window.location.origin` only if the env var is genuinely unset, so a
- * misconfigured environment still produces a working (if unendorsed) link
- * rather than a broken one.
+ * Post-launch fix: previously preferred a build-time `NEXT_PUBLIC_APP_URL`
+ * constant over `window.location.origin`, reasoning that the origin the
+ * Lead Architect happens to be browsing from (a reverse proxy or tunnel
+ * hostname) shouldn't leak into a shared link. In practice this codebase's
+ * deploy process doesn't reliably guarantee that constant is correct at
+ * build time — it has repeatedly shipped a stale local tunnel URL baked
+ * into production, silently, for however long until the next correct
+ * rebuild. `window.location.origin` can never go stale like that: it's
+ * read live, every time, from wherever this code is actually running —
+ * correct on `next dev`, every Vercel preview, production, and any custom
+ * domain, with nothing to configure or keep in sync. This function is only
+ * ever called from a "use client" component, so `window` is always
+ * available here.
  *
  * Sprint 5.8, Module 2: WhatsApp now deep-links straight to the invitee's
  * own number (`https://wa.me/<digits>?text=...`) instead of the generic
@@ -29,8 +31,7 @@
  * only, not every call site.
  */
 export function buildInviteShareLinks(params: { inviteCode: string; projectName: string; roleName: string; inviteeName?: string | null; whatsappNumber?: string | null }) {
-  const configuredBaseUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  const baseUrl = configuredBaseUrl || (typeof window !== "undefined" ? window.location.origin : "");
+  const baseUrl = typeof window !== "undefined" && window.location && window.location.origin ? window.location.origin : "";
   const url = `${baseUrl}/invite/${params.inviteCode}`;
 
   const greeting = params.inviteeName?.trim() ? `Hi ${params.inviteeName.trim()}, ` : "";
