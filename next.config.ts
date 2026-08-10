@@ -29,6 +29,16 @@ if (process.env.NEXT_PUBLIC_APP_URL) {
 
 const nextConfig: NextConfig = {
   ...(allowedDevOrigins.length > 0 ? { allowedDevOrigins } : {}),
+  // Default Server Actions body limit is 1 MB (confirmed live: a real
+  // Agreement PDF upload was rejected with "Body exceeded 1 MB limit"
+  // before uploadInitialAgreement() ever ran). Raised to comfortably cover
+  // real agreement documents; framework config only, no upload logic
+  // touched.
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "25mb",
+    },
+  },
 };
 
 export default nextConfig;
