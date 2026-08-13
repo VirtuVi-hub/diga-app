@@ -1,5 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
-import type { Session, SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export function createBrowserSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -33,58 +33,32 @@ export function createBrowserSupabaseClient() {
  * since it's just "here are two tokens, trust them," not a
  * flow-specific exchange.
  */
-export async function establishSessionFromUrlFragment(supabase: SupabaseClient): Promise<{ error: string | null; session: Session | null }> {
+export async function establishSessionFromUrlFragment(supabase: SupabaseClient): Promise<{ error: string | null }> {
   if (typeof window === "undefined") {
-    return { error: "Not running in a browser.", session: null };
+    return { error: "Not running in a browser." };
   }
-
-  // TEMPORARY DEBUG INSTRUMENTATION — remove after diagnosing the stuck
-  // "Confirming..." report. No logic below was changed to add these.
-  console.log("[invite-debug] establishSessionFromUrlFragment: parsing hash");
 
   const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;
   const params = new URLSearchParams(hash);
 
   const errorDescription = params.get("error_description");
   if (errorDescription) {
-    console.log("[invite-debug] establishSessionFromUrlFragment: hash carried error_description", errorDescription);
-    return { error: errorDescription.replace(/\+/g, " "), session: null };
+    return { error: errorDescription.replace(/\+/g, " ") };
   }
 
   const accessToken = params.get("access_token");
   const refreshToken = params.get("refresh_token");
-  console.log(
-    "[invite-debug] establishSessionFromUrlFragment: extracted access_token",
-    accessToken ? `present (len=${accessToken.length}, prefix=${accessToken.slice(0, 8)}...)` : "MISSING",
-  );
-  console.log(
-    "[invite-debug] establishSessionFromUrlFragment: extracted refresh_token",
-    refreshToken ? `present (len=${refreshToken.length}, prefix=${refreshToken.slice(0, 8)}...)` : "MISSING",
-  );
   if (!accessToken || !refreshToken) {
-    return { error: "That link is invalid or has expired.", session: null };
+    return { error: "That link is invalid or has expired." };
   }
 
-  try {
-    console.log("[invite-debug] establishSessionFromUrlFragment: calling supabase.auth.setSession()");
-    const { data, error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-    console.log("[invite-debug] establishSessionFromUrlFragment: setSession resolved", {
-      hasSession: !!data?.session,
-      userId: data?.session?.user?.id ?? null,
-      errorMessage: error?.message ?? null,
-    });
-
-    if (error) {
-      console.log("[invite-debug] establishSessionFromUrlFragment: setSession error", error);
-      return { error: error.message, session: null };
-    }
-
-    // Drop the tokens from the visible URL/browser history now that the session is established.
-    window.history.replaceState(null, "", window.location.pathname + window.location.search);
-
-    return { error: null, session: data?.session ?? null };
-  } catch (err) {
-    console.log("[invite-debug] establishSessionFromUrlFragment: setSession threw", err);
-    throw err;
+  const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+  if (error) {
+    return { error: error.message };
   }
+
+  // Drop the tokens from the visible URL/browser history now that the session is established.
+  window.history.replaceState(null, "", window.location.pathname + window.location.search);
+
+  return { error: null };
 }

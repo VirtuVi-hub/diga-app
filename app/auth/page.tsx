@@ -30,18 +30,12 @@ function LoginForm() {
   // browser paints, so a normal `/auth` visit (no fragment) never renders
   // this branch and is completely unaffected.
   useLayoutEffect(() => {
-    // TEMPORARY DEBUG INSTRUMENTATION — remove after diagnosing the stuck
-    // "Confirming..." report. No logic below was changed to add these.
-    console.log("[invite-debug] 1. useLayoutEffect started");
-
     const hash = window.location.hash;
     // "error" covers expired/invalid links: Supabase redirects those as
     // `#error=...&error_description=...` with no access_token at all, and
     // establishSessionFromUrlFragment()'s own error_description handling
     // must still run so the user sees why, instead of a silent blank form.
-    const hashHasFragmentData = hash.includes("access_token") || hash.includes("error");
-    console.log("[invite-debug] 2. hash detected", { hash, hashHasFragmentData });
-    if (!hashHasFragmentData) return;
+    if (!hash.includes("access_token") && !hash.includes("error")) return;
 
     // Flips to the "Confirming..." view before the browser paints (this is
     // a layout effect, not a regular effect), so a normal /auth visit never
@@ -50,35 +44,24 @@ function LoginForm() {
     setEstablishingSession(true);
     let cancelled = false;
 
-    console.log("[invite-debug] 3. establishSessionFromUrlFragment() called");
     establishSessionFromUrlFragment(supabase)
-      .then((result) => {
-        const { error: sessionError, session } = result;
-        console.log("[invite-debug] 4. establishSessionFromUrlFragment() resolved", { cancelled });
-        console.log("[invite-debug] 5. returned session object", session);
-        console.log("[invite-debug] 6. returned error object", sessionError);
+      .then(({ error: sessionError }) => {
         if (cancelled) return;
         if (sessionError) {
           setError(sessionError);
           setEstablishingSession(false);
           return;
         }
-        console.log("[invite-debug] 7. router.replace() about to execute", { target: redirectTarget || "/" });
         router.replace(redirectTarget || "/");
-        console.log("[invite-debug] 8. router.replace() completed");
       })
       .catch((err) => {
         // Belt-and-suspenders, matching establishRecoverySession()'s own
         // precedent: nothing above should throw, but if it ever does, this
         // still returns to a usable login form instead of leaving
         // "Confirming..." stuck on screen forever.
-        console.log("[invite-debug] 9. catch() reached", err);
         if (cancelled) return;
         setError(err instanceof Error ? err.message : "Something went wrong confirming that link.");
         setEstablishingSession(false);
-      })
-      .finally(() => {
-        console.log("[invite-debug] 10. finally() reached");
       });
 
     return () => {

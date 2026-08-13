@@ -23,26 +23,12 @@ function isPublicPath(pathname: string): boolean {
 }
 
 export async function proxy(request: NextRequest) {
-  // TEMPORARY DEBUG INSTRUMENTATION — remove after diagnosing the redirect
-  // loop report. No logic below was changed to add these.
-  console.log("[invite-debug][proxy] executing", {
-    pathname: request.nextUrl.pathname,
-    method: request.method,
-  });
-  console.log(
-    "[invite-debug][proxy] cookies received",
-    request.cookies.getAll().map(({ name, value }) => ({ name, len: value?.length ?? 0 })),
-  );
-
   let response = NextResponse.next({ request });
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.log("[invite-debug][proxy] missing Supabase env vars, passing through", {
-      pathname: request.nextUrl.pathname,
-    });
     return response;
   }
 
@@ -61,25 +47,12 @@ export async function proxy(request: NextRequest) {
 
   const {
     data: { user },
-    error: getUserError,
   } = await supabase.auth.getUser();
 
-  console.log("[invite-debug][proxy] getUser() result", {
-    pathname: request.nextUrl.pathname,
-    hasUser: !!user,
-    userId: user?.id ?? null,
-    error: getUserError?.message ?? null,
-  });
-
   if (!user && !isPublicPath(request.nextUrl.pathname)) {
-    console.log("[invite-debug][proxy] redirecting to /auth", { pathname: request.nextUrl.pathname });
     return NextResponse.redirect(new URL("/auth", request.url));
   }
 
-  console.log("[invite-debug][proxy] allowing request through", {
-    pathname: request.nextUrl.pathname,
-    hasUser: !!user,
-  });
   return response;
 }
 

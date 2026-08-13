@@ -64,7 +64,7 @@ export async function registerUser(params: { email: string; password: string; fu
     throw new Error("Registration did not return a user.");
   }
 
-  await ensurePersonForAuthUser({ userId: data.user.id, email: params.email, fullName: params.fullName });
+  await ensurePersonForAuthUser(data.user);
 
   await publishSafely({
     eventType: EVENT_TYPES.USER_REGISTERED,

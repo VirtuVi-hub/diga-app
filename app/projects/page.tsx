@@ -26,10 +26,6 @@ function projectHref(project: Project): string {
 }
 
 export default async function ProjectsPage() {
-  // TEMPORARY DEBUG INSTRUMENTATION — remove after diagnosing the redirect
-  // loop report. No logic below was changed to add these.
-  console.log("[invite-debug][app/projects/page.tsx] executing");
-
   const supabase = await createServerSupabaseClient();
 
   // Check if the user is logged in
@@ -37,11 +33,8 @@ export default async function ProjectsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  console.log("[invite-debug][app/projects/page.tsx] getUser() result", { hasUser: !!user });
-
   // If not logged in, go to the login page
   if (!user) {
-    console.log("[invite-debug][app/projects/page.tsx] redirecting to /auth (no user)");
     redirect("/auth");
   }
 
