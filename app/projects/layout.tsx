@@ -8,9 +8,19 @@ export default async function ProjectsLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // TEMPORARY DEBUG INSTRUMENTATION — remove after diagnosing the redirect
+  // loop report. No logic below was changed to add these.
+  console.log("[invite-debug][app/projects/layout.tsx] executing");
+
   const { person, firm } = await getFirmContext();
 
+  console.log("[invite-debug][app/projects/layout.tsx] getFirmContext() result", {
+    hasPerson: !!person,
+    hasFirm: !!firm,
+  });
+
   if (!person) {
+    console.log("[invite-debug][app/projects/layout.tsx] redirecting to /auth (no person)");
     redirect("/auth");
   }
 
@@ -26,6 +36,7 @@ export default async function ProjectsLayout({
       .maybeSingle();
 
     if (!projectMembership) {
+      console.log("[invite-debug][app/projects/layout.tsx] redirecting to /firm (no project membership)");
       redirect("/firm");
     }
   }
